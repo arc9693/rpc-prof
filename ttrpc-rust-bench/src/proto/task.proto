@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package task;
+
+service Task {
+	rpc Create(CreateTaskRequest) returns (CreateTaskResponse);
+}
+
+message CreateTaskRequest {
+	string id = 1;
+	string bundle = 2;
+	bool terminal = 4;
+	string stdin = 5;
+	string stdout = 6;
+	string stderr = 7;
+	string checkpoint = 8;
+	string parent_checkpoint = 9;
+}
+
+message CreateTaskResponse {
+	uint32 pid = 1;
+}
