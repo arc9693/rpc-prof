@@ -29,7 +29,7 @@ impl Task for TaskService {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "[::1]:50051".parse()?;
     let ts = TaskService::default();
-
+    println!("request_number,memory_rss,memory_vms,average_rss,average_vms");
     Server::builder()
         .add_service(TaskServer::new(ts))
         .serve(addr)
@@ -41,7 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 // calculate memory stats
 // average
 
-static mut COUNTER: u32 = 0;
+static mut COUNTER: usize = 0;
 static mut TOTALRSS: usize = 0;
 static mut TOTALVMS: usize = 0;
 fn print_memory_stats() {
@@ -50,9 +50,7 @@ fn print_memory_stats() {
         COUNTER += 1;
         TOTALRSS += stats.physical_mem;
         TOTALVMS += stats.virtual_mem;
-        print!("RSS: {} ", stats.physical_mem);
-        print!("VMS: {} ", stats.virtual_mem);
-        println!("Average RSS: {}", TOTALRSS as u32 / COUNTER);
-        println!("Average VMS: {}", TOTALVMS as u32 / COUNTER);
+        // print all in one line spaced by tab
+        println!("{},{},{},{},{}", COUNTER, stats.physical_mem, stats.virtual_mem, TOTALRSS/COUNTER, TOTALVMS/COUNTER);
     }
 }

@@ -7,11 +7,11 @@ build = "src/build.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[bin]] # Bin to run the task gRPC server
-name = "task-server"
+name = "server"
 path = "src/server.rs"
 
 [[bin]] # Bin to run the task gRPC client
-name = "task-client"
+name = "client"
 path = "src/client.rs"
 
 [dependencies]

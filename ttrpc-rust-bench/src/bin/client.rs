@@ -1,13 +1,14 @@
-use ttrpc::context::{self, Context};
+use rand::distributions::Alphanumeric;
+use rand::{thread_rng, Rng};
+use ttrpc::context::{self};
 use ttrpc::Client;
 use ttrpc_demo::proto::task;
 use ttrpc_demo::proto::task_ttrpc;
 use ttrpc_demo::utils;
-use rand::{thread_rng, Rng};
-use rand::distributions::Alphanumeric;
+use std::env;
 
 fn generate_random_string(length: usize) -> String {
-    let mut rng = thread_rng();
+    let rng = thread_rng();
     let random_string: String = rng
         .sample_iter(&Alphanumeric)
         .take(length)
@@ -17,14 +18,22 @@ fn generate_random_string(length: usize) -> String {
 }
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+    if args.len() != 3 {
+        println!("Usage: {} <num_requests> <payload_size>", args[0]);
+        return;
+    }
+    let num_requests: usize = args[1].parse().unwrap();
+    let payload_size: usize = args[2].parse().unwrap();
+
     let c = Client::connect(utils::SOCK_ADDR).unwrap();
     let tc = task_ttrpc::TaskClient::new(c);
 
     // make 100 requests
-    for i in 0..100 {
+    for i in 0..num_requests {
         let req = task::CreateTaskRequest {
-            id: generate_random_string((i+1)*10000),
-            bundle: "bundle".to_string(),
+            id: generate_random_string(payload_size),
+            bundle: i.to_string(),
             terminal: true,
             stdin: "stdin".to_string(),
             stdout: "stdout".to_string(),
@@ -33,16 +42,7 @@ fn main() {
             parent_checkpoint: "parent_checkpoint".to_string(),
             special_fields: Default::default(),
         };
-        let resp = tc.create(default_ctx(), &req).unwrap();
-        println!("Create task response: {:?}", resp);
+        let response = tc.create(context::with_timeout(0), &req).unwrap();
+        println!("RESPONSE={:?}", response);
     }
-}
-
-fn default_ctx() -> Context {
-    let mut ctx = context::with_timeout(0);
-    ctx.add("key-1".to_string(), "value-1-1".to_string());
-    ctx.add("key-1".to_string(), "value-1-2".to_string());
-    ctx.set("key-2".to_string(), vec!["value-2".to_string()]);
-
-    ctx
 }
