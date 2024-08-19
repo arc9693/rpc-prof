@@ -9,7 +9,7 @@ import (
 )
 
 type ProfilingInterceptor struct {
-	stasts map[string]*FunctionStats
+	stats map[string]*FunctionStats
 }
 
 type FunctionStats struct {
