@@ -1,0 +1,8 @@
+version = "2"
+generators = ["go", "go-grpc"]
+
+
+# This section maps protobuf imports to Go packages. These will become
+# `-M` directives in the call to the go protobuf generator.
+[packages]
+  "google/rpc/status.proto" = "github.com/containerd/containerd/protobuf/google/rpc"
