@@ -13,17 +13,19 @@ import (
 	_ "net/http/pprof"
 
 	"github.com/containerd/ttrpc"
-	"github.com/pkg/profile"
 )
 
 const port = ":9002"
 
 func main() {
+	fmt.Printf("request_count,go_app_memory\n")
 	runtime.GC()
 
-	defer profile.Start(profile.MemProfile, profile.MemProfileRate(1), profile.ProfilePath(".")).Stop()
+	//defer profile.Start(profile.MemProfile, profile.MemProfileRate(1), profile.ProfilePath(".")).Stop()
 
-	s, err := ttrpc.NewServer()
+	s, err := ttrpc.NewServer(
+		ttrpc.WithUnaryServerInterceptor(serverInterceptor),
+	)
 	defer func() {
 		if err := s.Close(); err != nil {
 			log.Println(err)
@@ -43,6 +45,7 @@ func main() {
 	if err := s.Serve(context.Background(), lis); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
+
 }
 
 type taskService struct {

@@ -31,6 +31,7 @@ func NewProfilingInterceptor() *ProfilingInterceptor {
 }
 
 var pi = NewProfilingInterceptor()
+var count = 0
 
 func serverInterceptor(ctx context.Context, unmarshal ttrpc.Unmarshaler, info *ttrpc.UnaryServerInfo, method ttrpc.Method) (interface{}, error) {
 	// Call the actual method which is implementation specific
@@ -39,8 +40,9 @@ func serverInterceptor(ctx context.Context, unmarshal ttrpc.Unmarshaler, info *t
 	sys := m.Sys
 	heapReleased := m.HeapReleased
 	goappmem := sys - heapReleased
+	count++
 	// Print the stats
-	fmt.Printf("%f\t%f\t%f\t%d\n", bToKb(sys), bToKb(heapReleased), bToKb(goappmem), m.NumGC)
+	fmt.Printf("%d,%f\n", count, bToKb(goappmem))
 
 	return res, err
 }

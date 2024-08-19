@@ -1,0 +1,19 @@
+FROM rust:1.80
+
+WORKDIR /app
+COPY ./ttrpc-rust-bench ./ttrpc-rust-bench
+COPY ./grpc-rust-bench ./grpc-rust-bench
+COPY ./run_rust_bench.sh ./run_rust_bench.sh
+
+RUN apt-get update && apt-get install -y \
+    protobuf-compiler \
+    libprotobuf-dev \
+    libssl-dev \
+    pkg-config \
+    lsof
+
+RUN cd ttrpc-rust-bench && cargo build --release
+RUN cd ..
+RUN cd grpc-rust-bench && cargo build --release
+
+ENTRYPOINT ["bash", "run_rust_bench.sh"]

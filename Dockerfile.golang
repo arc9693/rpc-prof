@@ -1,0 +1,15 @@
+FROM golang:1.23
+
+WORKDIR /app
+COPY ./ttrpc-golang-bench ./ttrpc-golang-bench
+COPY ./grpc-golang-bench ./grpc-golang-bench
+RUN apt-get update && apt-get install -y lsof
+
+# pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change
+RUN cd ttrpc-golang-bench && go mod download && go mod verify
+RUN cd ..
+RUN cd grpc-golang-bench && go mod download && go mod verify
+
+COPY ./run_golang_bench.sh ./run_golang_bench.sh
+
+ENTRYPOINT ["bash", "run_golang_bench.sh"]
