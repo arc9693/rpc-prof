@@ -18,14 +18,12 @@ import (
 const port = ":9002"
 
 func main() {
-	fmt.Printf("request_count,go_app_memory\n")
+	//fmt.Printf("request_count,go_app_memory\n")
 	runtime.GC()
 
 	//defer profile.Start(profile.MemProfile, profile.MemProfileRate(1), profile.ProfilePath(".")).Stop()
 
-	s, err := ttrpc.NewServer(
-		ttrpc.WithUnaryServerInterceptor(serverInterceptor),
-	)
+	s, err := ttrpc.NewServer()
 	defer func() {
 		if err := s.Close(); err != nil {
 			log.Println(err)

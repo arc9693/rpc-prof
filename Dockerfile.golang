@@ -3,17 +3,19 @@ FROM golang:1.23
 WORKDIR /app
 COPY ./ttrpc-golang-bench ./ttrpc-golang-bench
 COPY ./grpc-golang-bench ./grpc-golang-bench
-RUN apt-get update && apt-get install -y lsof
+RUN apt-get update && apt-get install -y lsof && apt-get install -y smem
 
 # pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change
 RUN cd ttrpc-golang-bench && go mod download && go mod verify
-RUN cd ttrpc-golang-bench/server/ttrpc && go build -o server
+RUN cd ttrpc-golang-bench/server/ttrpc && go build -o ttrpc-server
 RUN cd ttrpc-golang-bench/client/ttrpc && go build -o client
 
 RUN cd grpc-golang-bench && go mod download && go mod verify
-RUN cd grpc-golang-bench/src/server && go build -o server
+RUN cd grpc-golang-bench/src/server && go build -o grpc-server
 RUN cd grpc-golang-bench/src/client && go build -o client
 
 COPY ./run_golang_bench.sh ./run_golang_bench.sh
+COPY ./smem.sh ./smem.sh
 
-ENTRYPOINT ["bash", "run_golang_bench.sh"]
+#ENTRYPOINT ["bash", "run_golang_bench.sh"]
+ENTRYPOINT ["bash", "smem.sh"]

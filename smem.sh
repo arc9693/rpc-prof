@@ -1,5 +1,5 @@
 #!/bin/bash
-
+pmap --version
 # Check if a payload size argument is provided
 if [ "$#" -ne 1 ]; then
     echo "Usage: $0 <payloadsize>"
@@ -36,13 +36,19 @@ monitor_memory() {
     while ps -p $PID > /dev/null; do
         {
             TIMESTAMP=$(date +'%Y-%m-%d %H:%M:%S')
-            PSS=$(smem -P $PROCESSNAME -c "pss name" | grep -w $PROCESSNAME | awk '{print $1}')
-            echo "$TIMESTAMP,$PSS"
+            # PSS=$(smem -P $PROCESSNAME -c "pss rss uss name" | grep -w $PROCESSNAME | awk '{print $1}')
+            # RSS=$(smem -P $PROCESSNAME -c "pss rss uss name" | grep -w $PROCESSNAME | awk '{print $2}')
+            # USS=$(smem -P $PROCESSNAME -c "pss rss uss name" | grep -w $PROCESSNAME | awk '{print $3}')
+            # echo "$TIMESTAMP,$PSS,$RSS,$USS"
+            pmap_output=$(pmap -X $PID | tail -n 1)
+            # Extract RSS and PSS from the output
+            RSS=$(echo "$pmap_output" | awk '{print $2}')
+            PSS=$(echo "$pmap_output" | awk '{print $3}')
+            echo "$TIMESTAMP,$PSS,$RSS"
         } | tee -a $LOG_FILE
-        sleep 0.001
+        sleep 0.5
     done
 }
-
 # Start and monitor gRPC server and client
 echo "Starting gRPC server..."
 cd grpc-golang-bench/src/server && ./grpc-server &
@@ -52,10 +58,10 @@ GRPC_SERVER_PID=$!
 monitor_memory grpc-server $GRPC_LOG_FILE &
 MONITOR_PID=$!
 
-sleep 5
+sleep 10
 
 # Run gRPC client
-cd grpc-golang-bench/src/client && ./client 1000 $PAYLOADSIZE
+cd grpc-golang-bench/src/client && ./client 5000 $PAYLOADSIZE
 CLIENT_EXIT_CODE=$?
 
 # Stop the monitoring process
@@ -71,6 +77,13 @@ if [ $CLIENT_EXIT_CODE -ne 0 ]; then
     echo "gRPC client failed with exit code $CLIENT_EXIT_CODE"
     exit $CLIENT_EXIT_CODE
 fi
+sleep 5
+# Clear caches
+sudo sh -c "sync; echo 3 > /proc/sys/vm/drop_caches"
+
+# Clear swap (if needed)
+sudo swapoff -a
+sudo swapon -a
 cd ../../..
 # Start and monitor ttrpc server and client
 echo "Starting ttrpc server..."
@@ -82,10 +95,10 @@ TTRPC_SERVER_PID=$!
 monitor_memory ttrpc-server $TTRPC_LOG_FILE &
 TTRPC_MONITOR_PID=$!
 
-sleep 5
+sleep 10
 
 # Run ttrpc client
-cd ttrpc-golang-bench/client/ttrpc && ./client 1000 $PAYLOADSIZE
+cd ttrpc-golang-bench/client/ttrpc && ./client 5000 $PAYLOADSIZE
 CLIENT_EXIT_CODE=$?
 
 # Stop the monitoring process

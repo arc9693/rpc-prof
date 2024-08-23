@@ -15,11 +15,11 @@ import (
 const port = ":9000"
 
 func main() {
-	fmt.Printf("request_count,go_app_memory\n")
+	// fmt.Printf("request_count,go_app_memory\n")
 	runtime.GC()
 	// defer profile.Start(profile.MemProfile, profile.MemProfileRate(1), profile.ProfilePath(".")).Stop()
 	// create a new grpc server
-	s := grpc.NewServer(grpc.UnaryInterceptor(serverInterceptor))
+	s := grpc.NewServer()
 
 	lis, err := net.Listen("tcp", port)
 	if err != nil {

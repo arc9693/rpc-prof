@@ -8,12 +8,14 @@ def apply_gaussian_smoothing(data, sigma=1):
 
 def plot_memory_usage(grpc_log_file, ttrpc_log_file, output_file, sigma=1):
     # Read the log files into DataFrames
-    df_grpc = pd.read_csv(grpc_log_file, names=['Timestamp', 'PSS'], parse_dates=['Timestamp'], date_parser=pd.to_datetime)
-    df_ttrpc = pd.read_csv(ttrpc_log_file, names=['Timestamp', 'PSS'], parse_dates=['Timestamp'], date_parser=pd.to_datetime)
+    df_grpc = pd.read_csv(grpc_log_file, names=['Timestamp', 'PSS', 'RSS'], parse_dates=['Timestamp'], date_parser=pd.to_datetime)
+    df_ttrpc = pd.read_csv(ttrpc_log_file, names=['Timestamp', 'PSS', 'RSS'], parse_dates=['Timestamp'], date_parser=pd.to_datetime)
 
     # Convert PSS to numeric, coercing errors
     df_grpc['PSS'] = pd.to_numeric(df_grpc['PSS'], errors='coerce')
     df_ttrpc['PSS'] = pd.to_numeric(df_ttrpc['PSS'], errors='coerce')
+    df_grpc['RSS'] = pd.to_numeric(df_grpc['RSS'], errors='coerce')
+    df_ttrpc['RSS'] = pd.to_numeric(df_ttrpc['RSS'], errors='coerce')
 
     # Generate counts as x-axis values
     df_grpc['Count'] = range(len(df_grpc))
@@ -22,6 +24,8 @@ def plot_memory_usage(grpc_log_file, ttrpc_log_file, output_file, sigma=1):
     # Apply Gaussian smoothing
     df_grpc['PSS_smoothed'] = apply_gaussian_smoothing(df_grpc['PSS'].fillna(0), sigma)
     df_ttrpc['PSS_smoothed'] = apply_gaussian_smoothing(df_ttrpc['PSS'].fillna(0), sigma)
+    df_grpc['RSS_smoothed'] = apply_gaussian_smoothing(df_grpc['RSS'].fillna(0), sigma)
+    df_ttrpc['RSS_smoothed'] = apply_gaussian_smoothing(df_ttrpc['RSS'].fillna(0), sigma)
 
     # Plotting
     plt.figure(figsize=(12, 8))
@@ -31,10 +35,13 @@ def plot_memory_usage(grpc_log_file, ttrpc_log_file, output_file, sigma=1):
 
     # Plot ttrpc with smoothing
     plt.plot(df_ttrpc['Count'], df_ttrpc['PSS_smoothed'], label='ttrpc PSS (Smoothed)', color='r', linestyle='-')
+    
+    plt.plot(df_grpc['Count'], df_grpc['RSS_smoothed'], label='gRPC RSS (Smoothed)', color='b', linestyle='--')
+    plt.plot(df_ttrpc['Count'], df_ttrpc['RSS_smoothed'], label='ttrpc RSS (Smoothed)', color='r', linestyle='--')
 
     plt.title('Memory Usage Over Time for gRPC and ttrpc (Smoothed)')
     plt.xlabel('Count')
-    plt.ylabel('PSS (KB)')
+    plt.ylabel('Memory (KB)')
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
