@@ -8,13 +8,14 @@ fi
 kill $(lsof -ti :9000) || true
 kill $(lsof -ti :9002) || true
 PAYLOADSIZE=$1
-
+LOG_DIR="/mnt/logs"
 # Define the output log files
-GRPC_LOG_FILE="grpc-server-memory-$PAYLOADSIZE.log"
-TTRPC_LOG_FILE="ttrpc-server-memory-$PAYLOADSIZE.log"
+GRPC_LOG_FILE="$LOG_DIR/grpc-server-memory-$PAYLOADSIZE.log"
+TTRPC_LOG_FILE="$LOG_DIR/ttrpc-server-memory-$PAYLOADSIZE.log"
 
 # Ensure the log files are writable or create them if needed
 rm -f $GRPC_LOG_FILE $TTRPC_LOG_FILE
+mkdir -p $LOG_DIR
 touch $GRPC_LOG_FILE $TTRPC_LOG_FILE
 if [ $? -ne 0 ]; then
     echo "Error: Unable to create or write to log files."
